@@ -25,18 +25,19 @@ void miotPowerState(const String & state)
   BLINKER_LOG("need set power state: ", state);
 
   if (state == BLINKER_CMD_ON) {
-    myservo.write(200); /*收到“on”的指令 舵机旋转100度数*/
+    myservo.write(180); /*收到“on”的指令 舵机旋转100度数*/
     BlinkerMIOT.powerState("on");
     BlinkerMIOT.print();  /*将状态推送到app*/
     delay(1000);
     myservo.write(90);  /*舵机恢复出厂*/
   }
   else if (state == BLINKER_CMD_OFF) {
-    myservo.write(70);  /*舵机偏转60度*/
-    BlinkerMIOT.powerState("off");
-    BlinkerMIOT.print();
-    delay(1000);
-    myservo.write(90);
+  
+//    myservo.write(70);  /*舵机偏转60度*/
+//    BlinkerMIOT.powerState("off");
+//    BlinkerMIOT.print();
+//    delay(1000);
+//    myservo.write(90);
   }
 }
 
@@ -55,9 +56,11 @@ void button1_callback(const String & state)
   else if (state == "press" || state == "tap")
     /*关门*/
   {
+    /*
     myservo.write(70);
     delay(1000);
     myservo.write(90);
+    */
   }
 }
 void dataRead(const String & data)
