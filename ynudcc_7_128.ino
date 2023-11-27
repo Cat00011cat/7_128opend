@@ -1,16 +1,39 @@
-#define BLINKER_WIFI
-/*小爱同学语言控制*/
-#define BLINKER_MIOT_LIGHT
-#include <Blinker.h>
-#include <Servo.h>
-
-/*
-   滇院智能门锁
-   启动宿舍128专属
-   @Cat00011cat
-   @http://thecat.top
+/**
+   初始化参数
 */
+#define BLINKER_WIFI
+#define BLINKER_MIOT_LIGHT
 
+#define SDA_PIN 4
+#define RST_PIN 5
+
+/**
+   Blin库 用于硬件接入云端
+*/
+#include <Blinker.h>
+/**
+   舵机库
+*/
+#include <Servo.h>
+/**
+   SPI通信库
+*/
+#include <SPI.h>
+/**
+   MFRC522库 用于RFID模块通信
+*/
+#include <MFRC522.h>
+
+
+/**
+   ==========================================
+*  滇院智能门锁
+*  启动宿舍128专属
+*  实现功能：远程网络控制、nfc刷卡
+*  @Cat00011cat
+*  @http://thecat.top
+*  ==========================================
+*/
 Servo myservo;  /*定义mg996s大扭力伺服舵机对象*/
 
 char auth[] = "d2daf753e335"; /*设备ID密钥*/
@@ -19,7 +42,15 @@ char pswd[] = "1234567890"; /*WIFI 密码*/
 BlinkerButton Button1("test");  /*按钮对象*/
 int counter = 0;
 
-/*电源类操作*/
+/**
+   spi协议与rc522 初始化参数
+*/
+MFRC522 mfrc522(SDA_PIN, RST_PIN); /**创建MFRC522*/
+
+
+/**
+   电源类操作
+*/
 void miotPowerState(const String & state)
 {
   BLINKER_LOG("need set power state: ", state);
@@ -32,12 +63,12 @@ void miotPowerState(const String & state)
     myservo.write(90);  /*舵机恢复出厂*/
   }
   else if (state == BLINKER_CMD_OFF) {
-  
-//    myservo.write(70);  /*舵机偏转60度*/
-//    BlinkerMIOT.powerState("off");
-//    BlinkerMIOT.print();
-//    delay(1000);
-//    myservo.write(90);
+
+    //    myservo.write(70);  /*舵机偏转60度*/
+    //    BlinkerMIOT.powerState("off");
+    //    BlinkerMIOT.print();
+    //    delay(1000);
+    //    myservo.write(90);
   }
 }
 
@@ -45,7 +76,9 @@ void button1_callback(const String & state)
 {
   BLINKER_LOG("get button state: ", state);
   if (state == "on")
-    /*开门*/
+    /**
+       开门  控制舵机转向角度
+    */
   {
     myservo.write(180);
     delay(1000);
@@ -54,12 +87,14 @@ void button1_callback(const String & state)
 
   }
   else if (state == "press" || state == "tap")
-    /*关门*/
+    /**
+       关门
+    */
   {
     /*
-    myservo.write(70);
-    delay(1000);
-    myservo.write(90);
+      myservo.write(70);
+      delay(1000);
+      myservo.write(90);
     */
   }
 }
@@ -69,6 +104,9 @@ void dataRead(const String & data)
   counter++;
 }
 
+/**
+   硬件初始化
+*/
 void setup()
 {
   Serial.begin(115200);   /*串口波特率*/
@@ -79,7 +117,59 @@ void setup()
   Blinker.begin(auth, ssid, pswd);  /*Blinker初始化*/
   Blinker.attachData(dataRead);
   Button1.attach(button1_callback);
+
+  SPI.begin();      /**初始化SPI通信*/
+  mfrc522.PCD_Init(); /** 初始化MFRC522*/
+  delay(4); /**等待传感器稳定下来*/
+  Serial.println("Scan your RFID card to access");  /**串口回显信息*/
 }
+
+/**
+   程序入口
+*/
 void loop() {
-  Blinker.run();
+  /**
+     接入服务器
+  */
+//  Blinker.run();
+  /**
+    检测卡片
+  */
+  if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
+    /** 读取卡片序列号*/
+    Serial.print("uid:");
+    String cardUID = "";
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+      cardUID += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
+      cardUID += String(mfrc522.uid.uidByte[i], HEX);
+      /**
+       * DEBUG 用
+       */
+       Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
+       Serial.print(mfrc522.uid.uidByte[i], HEX);
+    }
+
+    /**
+       UID 可以直接借助第三方工具获取
+       或者 直接通过串口打印到电脑上。
+    */
+    Serial.println("cardUID:");Serial.print(cardUID);
+    Serial.println("Start Access!!!");
+    /**RFID UID，可以添加多张卡 */
+    if (cardUID == "c3856609" || cardUID == "1dc86ad5041080") {
+      /** 身份认证成功 蜂鸣器滴一声 之后 运行控制舵机*/
+      myservo.write(180);
+      delay(1000);
+      myservo.write(90);
+      Serial.println("Access SuccessFull");
+    }
+    else {
+      /** 认证失败，蜂鸣器嘀嘀嘀 报警*/
+      Serial.println("Access denied");
+    }
+
+    /** 停止卡片*/
+    mfrc522.PICC_HaltA();
+    mfrc522.PCD_StopCrypto1();
+  }
 }
