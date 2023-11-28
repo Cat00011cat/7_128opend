@@ -1,11 +1,22 @@
 /**
+   ==========================================
+*  滇院智能门锁
+*  启动宿舍128专属
+*  实现功能：远程网络控制、nfc刷卡
+*  @Cat00011cat
+*  @http://thecat.top
+*  ==========================================
+*/
+
+/**
    初始化参数
 */
-#define BLINKER_WIFI
-#define BLINKER_MIOT_LIGHT
+#define BLINKER_WIFI  /**wifi通信*/
+#define BLINKER_MIOT_LIGHT  /**小爱IOT*/
 
-#define SDA_PIN 4
-#define RST_PIN 5
+#define SDA_PIN 4 /**数据线端口*/
+#define RST_PIN 5 /**重置端口*/
+#define LED_PIN "D1" /**led端口*/
 
 /**
    Blin库 用于硬件接入云端
@@ -25,15 +36,6 @@
 #include <MFRC522.h>
 
 
-/**
-   ==========================================
-*  滇院智能门锁
-*  启动宿舍128专属
-*  实现功能：远程网络控制、nfc刷卡
-*  @Cat00011cat
-*  @http://thecat.top
-*  ==========================================
-*/
 Servo myservo;  /*定义mg996s大扭力伺服舵机对象*/
 
 char auth[] = "d2daf753e335"; /*设备ID密钥*/
@@ -125,13 +127,21 @@ void setup()
 }
 
 /**
+* RC522 LED 控制
+*/
+void Rc522_Led(){
+  
+ }
+
+
+/**
    程序入口
 */
 void loop() {
   /**
      接入服务器
   */
-//  Blinker.run();
+  Blinker.run();
   /**
     检测卡片
   */
@@ -157,7 +167,10 @@ void loop() {
     Serial.println("Start Access!!!");
     /**RFID UID，可以添加多张卡 */
     if (cardUID == "c3856609" || cardUID == "1dc86ad5041080") {
-      /** 身份认证成功 蜂鸣器滴一声 之后 运行控制舵机*/
+      /**身份认证成功 灯闪烁2次*/
+      Rc522_Led();
+      Rc522_Led();
+      /** 运行控制舵机*/
       myservo.write(180);
       delay(1000);
       myservo.write(90);
