@@ -123,15 +123,15 @@ void setup()
   SPI.begin();      /**初始化SPI通信*/
   mfrc522.PCD_Init(); /** 初始化MFRC522*/
   delay(4); /**等待传感器稳定下来*/
-  Serial.println("Scan your RFID card to access");  /**串口回显信息*/
+//  Serial.println("Scan your RFID card to access");  /**串口回显信息*/
 }
 
 /**
 * RC522 LED 控制
 */
-void Rc522_Led(){
-  
- }
+//void Rc522_Led(){
+//  
+// }
 
 
 /**
@@ -141,13 +141,13 @@ void loop() {
   /**
      接入服务器
   */
-  Blinker.run();
+//  Blinker.run();
   /**
     检测卡片
   */
   if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
     /** 读取卡片序列号*/
-    Serial.print("uid:");
+//    Serial.print("uid:");
     String cardUID = "";
     for (byte i = 0; i < mfrc522.uid.size; i++) {
       cardUID += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
@@ -155,30 +155,30 @@ void loop() {
       /**
        * DEBUG 用
        */
-       Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
-       Serial.print(mfrc522.uid.uidByte[i], HEX);
+//       Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
+//       Serial.print(mfrc522.uid.uidByte[i], HEX);
     }
 
     /**
        UID 可以直接借助第三方工具获取
        或者 直接通过串口打印到电脑上。
     */
-    Serial.println("cardUID:");Serial.print(cardUID);
-    Serial.println("Start Access!!!");
+//    Serial.println("cardUID:");Serial.print(cardUID);
+//    Serial.println("Start Access!!!");
     /**RFID UID，可以添加多张卡 */
     if (cardUID == "c3856609" || cardUID == "1dc86ad5041080") {
       /**身份认证成功 灯闪烁2次*/
-      Rc522_Led();
-      Rc522_Led();
+//      Rc522_Led();
+//      Rc522_Led();
       /** 运行控制舵机*/
       myservo.write(180);
-      delay(1000);
+      delay(3000);
       myservo.write(90);
-      Serial.println("Access SuccessFull");
+//      Serial.println("Access SuccessFull");
     }
     else {
       /** 认证失败，蜂鸣器嘀嘀嘀 报警*/
-      Serial.println("Access denied");
+//      Serial.println("Access denied");
     }
 
     /** 停止卡片*/
